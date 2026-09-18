@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>DemoLens — Quality Auditor</title>
+<meta name="description" content="Offline, rule-based demo-class audit assistant. Turn rough observation notes into a structured 11-question evaluation report." />
+<meta name="theme-color" content="#1f8a8c" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="DemoLens" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="app-header">
+  <div class="row">
+    <div class="brand">
+      <img class="logo" src="icons/icon-192.png" alt="DemoLens logo" />
+      <div>
+        <h1>DemoLens</h1>
+        <div class="tag live-caps">Quality Auditor · offline &amp; rule-based, no AI</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn live-caps" id="themeToggle" title="Toggle theme">🌙</button>
+      <button class="icon-btn live-caps" id="newAuditBtn" title="Start a new audit">+ New</button>
+    </div>
+  </div>
+  <nav class="tabbar" id="tabbar">
+    <button data-view="capture" class="active live-caps">1 · Capture</button>
+    <button data-view="dashboard" class="live-caps">2 · Dashboard</button>
+    <button data-view="report" class="live-caps">3 · Report</button>
+    <button data-view="library" class="live-caps">4 · Rule Library</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- CAPTURE -->
+  <section class="view active" id="captureView">
+    <div class="grid cols-2">
+      <div class="card">
+        <h2>Rough observation notes</h2>
+        <div class="sub">Write exactly as you normally would while watching the demo — one observation per line, English or Hinglish. Tap a chip to insert a common one.</div>
+
+        <div class="field">
+          <div class="chips" id="chipRow"></div>
+        </div>
+
+        <div class="field">
+          <label for="roughNotes">Notes</label>
+          <textarea id="roughNotes" placeholder="12:30 calculation mistake but corrected it
+background noise from fan
+good rapport through football
+asked student to summarise
+parent communication strong"></textarea>
+          <div class="hint">Everything stays in your browser. Nothing is sent anywhere.</div>
+        </div>
+
+        <h3>Session details (optional)</h3>
+        <div class="row2">
+          <div class="field"><label for="teacherName">Teacher</label><input id="teacherName" placeholder="e.g. Ananya" /></div>
+          <div class="field"><label for="studentName">Student</label><input id="studentName" placeholder="e.g. Rohan" /></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="subjectName">Subject / Grade</label><input id="subjectName" placeholder="e.g. Grade 9 Math" /></div>
+          <div class="field"><label for="auditDate">Date</label><input id="auditDate" type="date" /></div>
+        </div>
+
+        <div class="buttons">
+          <button class="btn primary" id="analyzeBtn">Analyze notes →</button>
+          <button class="btn ghost" id="loadSampleBtn">Load sample notes</button>
+          <button class="btn danger" id="clearBtn">Clear</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Live parse timeline</h2>
+        <div class="sub">Each line you write turns into structured audit language in real time.</div>
+        <div class="timeline" id="timeline">
+          <div class="empty">Start typing on the left — matched observations will appear here as a timeline.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section class="view" id="dashboardView">
+    <div class="grid cols-2">
+      <div class="card">
+        <h2>Executive snapshot</h2>
+        <div class="sub" id="dashSub">Analyze some notes on the Capture tab first.</div>
+        <div class="stat-row">
+          <div class="stat"><div class="big" id="statScore">—</div><div class="lbl">Overall score /10</div></div>
+          <div class="stat"><div class="big" id="statDecision">—</div><div class="lbl">Decision</div></div>
+          <div class="stat"><div class="big" id="statConversion">—</div><div class="lbl">Conversion forecast</div></div>
+        </div>
+        <div class="gauge-wrap"><svg id="gauge" width="220" height="130" viewBox="0 0 220 130"></svg></div>
+      </div>
+
+      <div class="card">
+        <h2>Category breakdown</h2>
+        <div class="sub">Auto-scored from matched observations — edit the numbers on the Report tab if you disagree.</div>
+        <div class="bars" id="categoryBars"><div class="empty">No categories scored yet.</div></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>Strengths vs. concerns</h2>
+      <div class="sub">Every matched line, colour-coded.</div>
+      <div class="timeline" id="dashTimeline"><div class="empty">Nothing analyzed yet.</div></div>
+    </div>
+  </section>
+
+  <!-- REPORT -->
+  <section class="view" id="reportView">
+    <div class="card">
+      <h2>Demo Class Evaluation — draft report</h2>
+      <div class="sub">Auto-drafted from your notes, question by question. Everything is editable — this is a starting point, not a final verdict.</div>
+      <div class="q-nav" id="qNav"></div>
+      <div class="buttons">
+        <button class="btn primary" id="copyReportBtn">Copy full report</button>
+        <button class="btn ghost" id="downloadReportBtn">Download .txt</button>
+        <button class="btn ghost" id="printReportBtn">Print / Save PDF</button>
+      </div>
+    </div>
+    <div id="reportBody" style="margin-top:16px;"></div>
+  </section>
+
+  <!-- LIBRARY -->
+  <section class="view" id="libraryView">
+    <div class="grid cols-2">
+      <div class="card">
+        <h2>Add a custom observation rule</h2>
+        <div class="sub">Teach DemoLens a phrase you use often, in your own words. It's saved on this device.</div>
+        <div class="field"><label for="ruleKeys">Trigger phrase(s), comma-separated</label><input id="ruleKeys" placeholder="e.g. camera was shaky, video kept freezing" /></div>
+        <div class="row2">
+          <div class="field"><label for="ruleCategory">Category</label><select id="ruleCategory"></select></div>
+          <div class="field"><label for="rulePolarity">Type</label>
+            <select id="rulePolarity">
+              <option value="concern">Concern</option>
+              <option value="strength">Strength</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label for="ruleIssue">Issue sentence</label><input id="ruleIssue" placeholder="e.g. The video feed froze intermittently during the session." /></div>
+        <div class="field"><label for="ruleRec">Recommendation sentence</label><input id="ruleRec" placeholder="e.g. Test the internet connection and camera before starting the demo." /></div>
+        <div class="buttons"><button class="btn primary" id="addRuleBtn">Save rule</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Your custom rules</h2>
+        <div class="sub" id="customRuleCount">No custom rules yet.</div>
+        <div class="rule-list" id="customRuleList"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>Built-in rule reference</h2>
+      <div class="sub">The full library DemoLens already understands, grouped by category.</div>
+      <div id="builtinRuleRef"></div>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+<div class="install-banner" id="installBanner">
+  <span>Install DemoLens for one-tap, fully offline access.</span>
+  <button id="installBtn">Install</button>
+</div>
+
+<script src="rules.js"></script>
+<script src="engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
